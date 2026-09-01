@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vocal Note</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#090b10;--panel:#12151c;--panel2:#181c25;--line:#272c38;--text:#f4f6fa;--muted:#8f97a8;--accent:#9b8cff;--good:#63d69f;--danger:#ff7187}
+body{margin:0;background:radial-gradient(circle at 80% -10%,#211b40 0,#090b10 38%);color:var(--text);font-family:Inter,"Pretendard","Noto Sans KR",sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;display:flex}.sidebar{position:fixed;inset:0 auto 0 0;width:220px;padding:26px 15px;background:rgba(9,11,16,.94);border-right:1px solid var(--line);z-index:5}
+.logo{font-weight:900;font-size:21px;padding:0 12px 28px}.logo span{color:var(--accent)}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:var(--muted);text-align:left;padding:12px;border-radius:10px}.nav button:hover,.nav button.active{background:#1a1d27;color:#fff}
+.main{margin-left:220px;width:calc(100% - 220px);padding:30px;max-width:1500px}.page{display:none}.page.active{display:block}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--accent);text-transform:uppercase}h1{font-size:30px;margin:5px 0 0;letter-spacing:-1px}h2{font-size:18px;margin:0 0 16px}.muted{color:var(--muted)}
+.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.25fr .75fr}.card{background:linear-gradient(180deg,rgba(23,27,36,.96),rgba(14,17,23,.96));border:1px solid var(--line);border-radius:16px;padding:18px}
+.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:25px;font-weight:900;margin-top:7px}.stat small{color:var(--good)}
+.btn{border:1px solid var(--line);background:#1a1e28;color:#fff;border-radius:10px;padding:10px 14px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0d12;font-weight:900}.btn.danger{background:#301720;border-color:#5a2631;color:#ff9aaa}.btn.small{padding:7px 10px;font-size:12px}.btn:hover{filter:brightness(1.08)}
+input,textarea,select{width:100%;background:#0d1016;border:1px solid var(--line);color:#fff;border-radius:10px;padding:10px 12px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{min-height:90px;resize:vertical}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.full{grid-column:1/-1}label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+.session{padding:14px 0;border-bottom:1px solid var(--line)}.session:last-child{border-bottom:0}.session-main{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.row{display:flex;gap:8px;align-items:center}
+.tag{display:inline-block;background:#211d38;color:#bdb4ff;padding:4px 8px;border-radius:999px;font-size:11px;margin-right:5px}.mini{font-size:12px;color:var(--muted);margin-top:5px}
+.progress{height:8px;background:#252a35;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:var(--accent)}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.dayname{text-align:center;color:var(--muted);font-size:11px;padding:4px}
+.day{min-height:96px;border:1px solid #202531;border-radius:12px;background:#141820;padding:9px;display:flex;flex-direction:column;justify-content:space-between;color:#737c8e;cursor:pointer;transition:.15s}.day:hover{border-color:#554b70;transform:translateY(-1px)}.day.done{background:linear-gradient(180deg,#292441,#211e32);color:#fff;border-color:#40375b}.day.today{outline:2px solid var(--accent);outline-offset:-2px}.day.selected{border-color:#c1b8ff;box-shadow:0 0 0 1px #9b8cff inset}.day-num{font-weight:800;font-size:13px}.day-hours{font-size:13px;font-weight:900;color:#c8c1ff}.day-count{font-size:10px;color:var(--muted)}
+.calendar-detail{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}.detail-head{display:flex;justify-content:space-between;gap:15px;align-items:center}
+.song{padding:17px 0}.song+.song{border-top:1px solid var(--line)}.song-head{display:grid;grid-template-columns:1fr auto;gap:15px}.song-title{font-size:16px;font-weight:900}
+.yt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.yt iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#07090d}.yt-title{font-size:11px;color:var(--muted);margin-bottom:6px}
+.warm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.warm-card{background:#0d1016;border:1px solid var(--line);border-radius:12px;padding:10px}.warm-card iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:8px}.warm-card b{font-size:12px;display:block;margin:8px 2px 0}.warm-card span{font-size:10px;color:var(--muted)}
+.timer{display:flex;align-items:center;gap:12px}.timer-display{font-size:28px;font-weight:900;min-width:100px;text-align:center}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}.checklist{display:grid;gap:9px}.check{display:flex;align-items:center;gap:9px;background:#0d1016;border:1px solid var(--line);padding:10px;border-radius:10px}.check input{width:auto}
+canvas{width:100%;height:190px;background:#0d1016;border:1px solid var(--line);border-radius:12px}
+.empty{text-align:center;padding:30px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.open{display:flex}.modalbox{width:min(760px,100%);max-height:92vh;overflow:auto;background:#12151c;border:1px solid var(--line);border-radius:18px;padding:22px}
+.toast{position:fixed;right:22px;bottom:22px;background:#f4f6fa;color:#101218;padding:11px 15px;border-radius:10px;font-weight:800;display:none;z-index:30}
+@media(max-width:1100px){.sidebar{width:72px}.logo{font-size:0}.logo span{font-size:20px}.nav button{font-size:0;text-align:center}.nav button:before{content:"•";font-size:20px}.main{margin-left:72px;width:calc(100% - 72px)}.stats{grid-template-columns:repeat(2,1fr)}.warm-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.stats,.two,.formgrid,.yt-grid,.warm-grid{grid-template-columns:1fr}.calendar{gap:4px}.day{min-height:62px;padding:6px}.day-hours{font-size:10px}.day-count{display:none}.main{padding:14px}.top{align-items:flex-start}.top .btn{display:none}}
+.login-screen{position:fixed;inset:0;background:radial-gradient(circle at 50% 0%,#211b40 0,#090b10 55%);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}.login-box{width:min(390px,100%);background:#12151c;border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 20px 70px rgba(0,0,0,.45)}.login-logo{text-align:center;font-weight:900;font-size:24px;margin-bottom:8px}.login-logo span{color:var(--accent)}.login-box h2{text-align:center;margin:0 0 8px}.login-box p{text-align:center;margin:0 0 20px}.login-error{color:var(--danger);font-size:12px;text-align:center;min-height:18px;margin-top:10px}.logout{position:fixed;right:18px;top:16px;z-index:8}</style>
+</head>
+<body><div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">VOCAL <span>NOTE</span></div>
+    <h2>보컬 노트 잠금</h2>
+    <p class="muted">암호를 입력해야 접근할 수 있습니다.</p>
+    <input id="loginPassword" type="password" inputmode="numeric" maxlength="64" placeholder="암호 입력" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn primary" style="width:100%;margin-top:12px" onclick="login()">로그인</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+<button class="btn small logout" id="logoutBtn" style="display:none" onclick="logout()">로그아웃</button>
+
+<div class="app">
+<aside class="sidebar">
+<div class="logo">VOCAL <span>NOTE</span></div>
+<nav class="nav">
+<button class="active" data-page="dashboard">대시보드</button>
+<button data-page="songs">곡 관리</button>
+<button data-page="calendar">연습 캘린더</button>
+<button data-page="warmup">워밍업</button>
+</nav>
+</aside>
+
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="top"><div><div class="eyebrow">Vocal Training Log</div><h1>오늘의 보컬 노트</h1></div><button class="btn primary" onclick="openSession()">＋ 연습 기록 추가</button></div>
+<div class="grid stats">
+<div class="card stat"><div class="label">연속 연습일</div><div class="value" id="streak">0일</div><small>꾸준함이 실력</small></div>
+<div class="card stat"><div class="label">이번 주 연습시간</div><div class="value" id="weekTime">0h 0m</div><small id="weekCount">0회 기록</small></div>
+<div class="card stat"><div class="label">오늘 연습시간</div><div class="value" id="todayTime">0분</div><small>오늘의 누적</small></div>
+<div class="card stat"><div class="label">등록된 곡</div><div class="value" id="songCount">0곡</div><small>곡별 연습 관리</small></div>
+</div>
+<div class="grid two" style="margin-top:16px">
+<div class="card"><div class="between"><h2>최근 연습</h2><span class="muted" id="todayLabel"></span></div><div id="recentSessions"></div></div>
+<div class="card"><h2>오늘 할 일</h2>
+<div class="checklist" id="todayChecklist"></div>
+<div class="timer" style="margin-top:14px"><div class="timer-display" id="timerDisplay">10:00</div><button class="btn primary" onclick="toggleTimer()" id="timerBtn">시작</button><button class="btn" onclick="resetTimer()">리셋</button></div>
+</div>
+</div>
+<div class="card" style="margin-top:16px"><div class="between"><h2>보컬 성장 추이</h2><select id="chartMetric" style="width:130px" onchange="drawChart()"><option value="overall">종합</option><option value="throat">목 상태</option><option value="pitch">음정</option><option value="breath">호흡</option><option value="high">고음</option></select></div><canvas id="chart"></canvas></div>
+</section>
+
+<section id="songs" class="page">
+<div class="top"><div><div class="eyebrow">Song Library</div><h1>곡 관리</h1></div><button class="btn primary" onclick="openSong()">＋ 곡 추가</button></div>
+<div class="card"><div id="songList"></div></div>
+</section>
+
+<section id="calendar" class="page">
+<div class="top"><div><div class="eyebrow">Consistency</div><h1>연습 캘린더</h1></div><button class="btn primary" onclick="openSession()">＋ 연습 기록 추가</button></div>
+<div class="card">
+<div class="between"><button class="btn" onclick="changeMonth(-1)">‹</button><h2 id="monthTitle"></h2><button class="btn" onclick="changeMonth(1)">›</button></div>
+<div class="calendar" id="calendarGrid"></div>
+<div id="calendarDetail" class="calendar-detail"></div>
+</div>
+</section>
+
+<section id="warmup" class="page">
+<div class="top"><div><div class="eyebrow">Warm-up / Scale</div><h1>워밍업 채널</h1></div></div>
+<div class="card">
+<div class="between"><div><h2 style="margin-bottom:5px">스케일로 목풀기</h2><div class="muted">연습 시작 전에 가볍게 스케일을 진행하는 용도로 사용하세요.</div></div></div>
+<div class="warm-grid" style="margin-top:16px" id="warmupGrid"></div>
+</div>
+<div class="card" style="margin-top:16px"><h2>추천 워밍업 순서</h2><div class="quick">
+<div class="card" style="padding:13px"><b>01 · 가볍게 시작</b><div class="mini">첫 영상부터 무리하지 않고 편한 음역으로 진행</div></div>
+<div class="card" style="padding:13px"><b>02 · 스케일 진행</b><div class="mini">각 영상에 맞춰 천천히 음정과 호흡에 집중</div></div>
+<div class="card" style="padding:13px"><b>03 · 노래 진입</b><div class="mini">워밍업 후 바로 고음부터 세게 부르기보다 곡의 낮은 구간부터 시작</div></div>
+<div class="card" style="padding:13px"><b>04 · 컨디션 기록</b><div class="mini">연습 기록에 오늘의 목 상태와 음정 등을 남기기</div></div>
+</div></div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="sessionModal"><div class="modalbox">
+<div class="between"><h2 id="sessionModalTitle">연습 기록 추가</h2><button class="btn" onclick="closeModal()">닫기</button></div>
+<div class="formgrid">
+<div><label>연습 날짜</label><input type="date" id="sDate"></div><div><label>연습 시간(분)</label><input type="number" id="sMinutes" min="1" value="30"></div>
+<div><label>연습 항목</label><select id="sType"><option>워밍업</option><option>발성</option><option>음정</option><option>고음</option><option>노래</option><option>랩/딕션</option></select></div>
+<div><label>연습곡</label><select id="sSong"><option value="">선택 안 함</option></select></div>
+<div class="full"><label>오늘 한 것 / 느낀 점</label><textarea id="sNote" placeholder="예: 2절 후렴에서 힘이 들어감. 볼륨을 낮춰 다시 연습."></textarea></div>
+<div><label>목 상태</label><input id="sThroat" type="range" min="1" max="5" value="4" oninput="$('sThroatV').textContent=this.value"><b id="sThroatV">4</b></div>
+<div><label>음정</label><input id="sPitch" type="range" min="1" max="5" value="4" oninput="$('sPitchV').textContent=this.value"><b id="sPitchV">4</b></div>
+<div><label>호흡</label><input id="sBreath" type="range" min="1" max="5" value="4" oninput="$('sBreathV').textContent=this.value"><b id="sBreathV">4</b></div>
+<div><label>고음 안정성</label><input id="sHigh" type="range" min="1" max="5" value="3" oninput="$('sHighV').textContent=this.value"><b id="sHighV">3</b></div>
+</div>
+<button class="btn primary" style="width:100%;margin-top:16px" onclick="saveSession()">저장</button>
+</div></div>
+
+<div class="modal" id="songModal"><div class="modalbox">
+<div class="between"><h2 id="songModalTitle">곡 추가</h2><button class="btn" onclick="closeModal()">닫기</button></div>
+<div class="formgrid">
+<div><label>곡 제목</label><input id="songTitle"></div><div><label>가수</label><input id="songArtist"></div>
+<div><label>현재 완성도 (%)</label><input type="number" id="songProgress" min="0" max="100" value="0"></div><div><label>상태</label><select id="songStatus"><option>연습 중</option><option>완곡</option><option>보류</option></select></div>
+<div class="full"><label>어려운 부분 / 문제 구간</label><textarea id="songProblem" placeholder="예: 01:12~01:27 고음에서 힘 들어감"></textarea></div>
+<div class="full"><label>YouTube 링크</label></div>
+<div><label>Inst</label><input id="songInst" placeholder="https://youtu.be/..."></div>
+<div><label>원곡</label><input id="songOriginal" placeholder="https://youtu.be/..."></div>
+<div><label>노래방 버전</label><input id="songKaraoke" placeholder="https://youtu.be/..."></div>
+</div>
+<button class="btn primary" style="width:100%;margin-top:16px" onclick="saveSong()">저장</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='vocal-note-v3';
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const FIREBASE_LOGIN_EMAIL = "vocalnote@private.local";
+const ACCESS_PASSWORD = "101010";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[],"songs":[]}');
+let db=null, auth=null, firebaseReady=false;
+let calDate=new Date(),selectedDate=dateStr(),editingSessionId=null,editingSongId=null,timerSeconds=600,timerRunning=false,timerHandle=null;
+const warmups=[
+["스케일 01","https://youtu.be/7y34SdtmuZE"],
+["스케일 02","https://youtu.be/L3cV0mMAzGo"],
+["스케일 03","https://youtu.be/zVzVYQPsoFU"],
+["스케일 04","https://youtu.be/Mql6gADzb1g"],
+["스케일 05","https://youtu.be/HjUynQt0t9Y"]
+];
+const $=id=>document.getElementById(id);
+async function persist(){
+  localStorage.setItem(KEY,JSON.stringify(data));
+  if(firebaseReady && auth.currentUser){
+    try{
+      await setDoc(doc(db,'vocalNotes',auth.currentUser.uid),data);
+      toast('서버에 저장했어요.');
+    }catch(e){console.error(e);toast('서버 저장 실패 — 로컬에는 저장됐어요.')}
+  }
+  renderAll();
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function dateStr(d=new Date()){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
+function go(page){document.querySelector(`[data-page="${page}"]`).click()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(b.dataset.page).classList.add('active');if(b.dataset.page==='calendar')renderCalendar()});
+function closeModal(){document.querySelectorAll('.modal').forEach(x=>x.classList.remove('open'))}
+function setRange(id,v){$(id).value=v;$(id+'V').textContent=v}
+function fillSongSelect(selected=''){$('sSong').innerHTML='<option value="">선택 안 함</option>'+data.songs.map(s=>`<option value="${s.id}" ${String(s.id)===String(selected)?'selected':''}>${esc(s.title)}${s.artist?' — '+esc(s.artist):''}</option>`).join('')}
+function openSession(id=null){
+editingSessionId=id;closeModal();fillSongSelect();$('sessionModalTitle').textContent=id?'연습 기록 수정':'연습 기록 추가';
+let s=id?data.sessions.find(x=>x.id===id):null;
+$('sDate').value=s?.date||selectedDate||dateStr();$('sMinutes').value=s?.minutes||30;$('sType').value=s?.type||'워밍업';$('sSong').value=s?.song||'';$('sNote').value=s?.note||'';
+setRange('sThroat',s?.throat||4);setRange('sPitch',s?.pitch||4);setRange('sBreath',s?.breath||4);setRange('sHigh',s?.high||3);$('sessionModal').classList.add('open')
+}
+function saveSession(){
+const s={id:editingSessionId||Date.now(),date:$('sDate').value,minutes:+$('sMinutes').value,type:$('sType').value,song:$('sSong').value,note:$('sNote').value,throat:+$('sThroat').value,pitch:+$('sPitch').value,breath:+$('sBreath').value,high:+$('sHigh').value};
+if(!s.minutes||!s.date)return toast('날짜와 연습 시간을 확인해주세요.');
+if(editingSessionId){const i=data.sessions.findIndex(x=>x.id===editingSessionId);if(i>=0)data.sessions[i]=s}else data.sessions.push(s);
+selectedDate=s.date;closeModal();persist();toast(editingSessionId?'연습 기록을 수정했어요.':'연습 기록을 저장했어요.')
+}
+function openSong(id=null){
+editingSongId=id;closeModal();$('songModalTitle').textContent=id?'곡 수정':'곡 추가';let s=id?data.songs.find(x=>x.id===id):null;
+$('songTitle').value=s?.title||'';$('songArtist').value=s?.artist||'';$('songProgress').value=s?.progress??0;$('songStatus').value=s?.status||'연습 중';$('songProblem').value=s?.problem||'';
+$('songInst').value=s?.inst||'';$('songOriginal').value=s?.original||'';$('songKaraoke').value=s?.karaoke||'';$('songModal').classList.add('open')
+}
+function saveSong(){
+const title=$('songTitle').value.trim();if(!title)return toast('곡 제목을 입력해주세요.');
+const s={id:editingSongId||Date.now(),title,artist:$('songArtist').value.trim(),progress:Math.min(100,Math.max(0,+$('songProgress').value||0)),status:$('songStatus').value,problem:$('songProblem').value,inst:$('songInst').value.trim(),original:$('songOriginal').value.trim(),karaoke:$('songKaraoke').value.trim()};
+if(editingSongId){const i=data.songs.findIndex(x=>x.id===editingSongId);if(i>=0)data.songs[i]=s}else data.songs.push(s);
+closeModal();persist();toast(editingSongId?'곡 정보를 수정했어요.':'곡을 추가했어요.')
+}
+function del(type,id){if(!confirm('삭제할까요?'))return;data[type]=data[type].filter(x=>x.id!==id);persist();toast('삭제했어요.')}
+function sessionHTML(s){
+const song=data.songs.find(x=>String(x.id)===String(s.song));
+return `<div class="session"><div class="session-main"><div><span class="tag">${esc(s.type)}</span>${song?`<span class="tag">${esc(song.title)}</span>`:''}<div style="margin-top:7px;font-weight:700">${esc(s.note||'기록 없음')}</div><div class="mini">${s.date} · ${s.minutes}분 · 목 ${s.throat}/5 · 음정 ${s.pitch}/5 · 호흡 ${s.breath}/5 · 고음 ${s.high}/5</div></div><div class="row"><button class="btn small" onclick="openSession(${s.id})">수정</button><button class="btn danger small" onclick="del('sessions',${s.id})">삭제</button></div></div></div>`
+}
+function renderDashboard(){
+const sessions=[...data.sessions].sort((a,b)=>b.id-a.id);$('todayLabel').textContent=new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+let start=new Date();start.setDate(start.getDate()-((start.getDay()+6)%7));let ss=data.sessions.filter(s=>s.date>=dateStr(start));let mins=ss.reduce((a,s)=>a+s.minutes,0);
+$('weekTime').textContent=`${Math.floor(mins/60)}h ${mins%60}m`;$('weekCount').textContent=ss.length+'회 기록';let todayM=data.sessions.filter(s=>s.date===dateStr()).reduce((a,s)=>a+s.minutes,0);$('todayTime').textContent=formatMinutes(todayM);
+$('recentSessions').innerHTML=sessions.slice(0,5).length?sessions.slice(0,5).map(sessionHTML).join(''):'<div class="empty">아직 연습 기록이 없어요.</div>';
+$('songCount').textContent=data.songs.length+'곡';$('streak').textContent=calcStreak()+'일';drawChart();renderChecklist()
+}
+function renderChecklist(){
+const checks=JSON.parse(localStorage.getItem('vocal-checklist')||'{}');let d=dateStr();
+$('todayChecklist').innerHTML=[['warm','워밍업 / 스케일'],['vocal','발성 연습'],['song','곡 연습'],['review','오늘 기록 정리']].map(([k,t])=>`<label class="check"><input type="checkbox" ${checks[d+'-'+k]?'checked':''} onchange="toggleCheck('${d}-${k}',this.checked)"><span>${t}</span></label>`).join('')
+}
+function toggleCheck(k,v){let c=JSON.parse(localStorage.getItem('vocal-checklist')||'{}');c[k]=v;localStorage.setItem('vocal-checklist',JSON.stringify(c))}
+function formatMinutes(mins){return mins<60?`${mins}분`:`${Math.floor(mins/60)}시간${mins%60?` ${mins%60}분`:''}`}
+function renderSongs(){
+const embed=(url,title)=>{let id=youtubeId(url);return id?`<div class="yt"><div class="yt-title">${title}</div><iframe src="https://www.youtube.com/embed/${id}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`:''};
+$('songList').innerHTML=data.songs.length?[...data.songs].sort((a,b)=>b.id-a.id).map(s=>`<div class="song"><div class="song-head"><div><div class="song-title">${esc(s.title)} <span class="tag">${esc(s.status)}</span></div><div class="mini">${esc(s.artist||'가수 미입력')}</div><div class="progress" style="margin-top:10px"><i style="width:${s.progress}%"></i></div><div class="mini">완성도 ${s.progress}%${s.problem?' · '+esc(s.problem):''}</div></div><div class="row"><button class="btn small" onclick="openSong(${s.id})">수정</button><button class="btn danger small" onclick="del('songs',${s.id})">삭제</button></div></div><div class="yt-grid">${embed(s.inst,'Inst')}${embed(s.original,'원곡')}${embed(s.karaoke,'노래방 버전')}</div></div>`).join(''):'<div class="empty">연습할 곡을 등록해보세요.</div>'
+}
+function youtubeId(url){if(!url)return null;let m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);return m?m[1]:null}
+function calcStreak(){const days=new Set(data.sessions.map(s=>s.date));let d=new Date();if(!days.has(dateStr(d)))d.setDate(d.getDate()-1);let n=0;while(days.has(dateStr(d))){n++;d.setDate(d.getDate()-1)}return n}
+function changeMonth(n){calDate.setMonth(calDate.getMonth()+n);renderCalendar()}
+function renderCalendar(){
+const y=calDate.getFullYear(),m=calDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0);$('monthTitle').textContent=`${y}년 ${m+1}월`;
+let html=['일','월','화','수','목','금','토'].map(x=>`<div class="dayname">${x}</div>`).join('');for(let i=0;i<first.getDay();i++)html+='<div></div>';
+for(let d=1;d<=last.getDate();d++){let ds=dateStr(new Date(y,m,d)),list=data.sessions.filter(s=>s.date===ds),mins=list.reduce((a,s)=>a+s.minutes,0),cl='day'+(list.length?' done':'')+(ds===dateStr()?' today':'')+(ds===selectedDate?' selected':'');html+=`<div class="${cl}" onclick="selectCalendarDate('${ds}')"><span class="day-num">${d}</span>${mins?`<span class="day-hours">${formatMinutes(mins)}</span>`:'<span class="day-count">연습 없음</span>'}${list.length?`<span class="day-count">${list.length}회</span>`:''}</div>`}
+$('calendarGrid').innerHTML=html;renderCalendarDetail(selectedDate)
+}
+function selectCalendarDate(ds){selectedDate=ds;renderCalendar()}
+function renderCalendarDetail(ds){
+const list=[...data.sessions].filter(s=>s.date===ds).sort((a,b)=>b.id-a.id),total=list.reduce((a,s)=>a+s.minutes,0);
+$('calendarDetail').innerHTML=`<div class="detail-head"><div><h2 style="margin-bottom:4px">${ds}</h2><div class="muted">총 연습시간 <b style="color:#fff">${formatMinutes(total)}</b> · ${list.length}회</div></div><button class="btn primary" onclick="openSession()">＋ 이 날짜에 기록</button></div>${list.length?list.map(sessionHTML).join(''):'<div class="empty">이 날의 연습 기록이 없습니다.</div>'}`
+}
+function renderWarmup(){
+$('warmupGrid').innerHTML=warmups.map(([t,url],i)=>{let id=youtubeId(url);return `<div class="warm-card"><iframe src="https://www.youtube.com/embed/${id}" title="${t}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><b>${t}</b><span>스케일 워밍업</span></div>`}).join('')
+}
+function drawChart(){
+const c=$('chart'),ctx=c.getContext('2d'),r=devicePixelRatio||1,w=c.clientWidth,h=190;c.width=w*r;c.height=h*r;ctx.scale(r,r);ctx.clearRect(0,0,w,h);ctx.strokeStyle='#252a35';ctx.lineWidth=1;
+for(let i=1;i<5;i++){let y=15+(h-30)*i/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+const arr=[...data.sessions].sort((a,b)=>a.date.localeCompare(b.date)).slice(-14);if(!arr.length){ctx.fillStyle='#8f97a8';ctx.font='13px sans-serif';ctx.fillText('연습 기록을 추가하면 성장 추이가 표시됩니다.',18,95);return}
+const metric=$('chartMetric').value,vals=arr.map(s=>metric==='overall'?(s.throat+s.pitch+s.breath+s.high)/4:s[metric]);ctx.strokeStyle='#9b8cff';ctx.lineWidth=3;ctx.beginPath();
+vals.forEach((v,i)=>{let x=25+(w-50)*(i/Math.max(1,vals.length-1)),y=h-20-(h-40)*(v/5);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#fff';
+vals.forEach((v,i)=>{let x=25+(w-50)*(i/Math.max(1,vals.length-1)),y=h-20-(h-40)*(v/5);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill()})
+}
+function renderAll(){renderDashboard();renderSongs();renderCalendar();renderWarmup()}
+function toggleTimer(){if(timerRunning){clearInterval(timerHandle);timerRunning=false;$('timerBtn').textContent='계속'}else{timerRunning=true;$('timerBtn').textContent='일시정지';timerHandle=setInterval(()=>{timerSeconds--;if(timerSeconds<=0){clearInterval(timerHandle);timerRunning=false;timerSeconds=0;$('timerBtn').textContent='시작';toast('워밍업 타이머가 끝났어요.')}updateTimer()},1000)}}
+function resetTimer(){clearInterval(timerHandle);timerRunning=false;timerSeconds=600;$('timerBtn').textContent='시작';updateTimer()}
+function updateTimer(){let m=Math.floor(timerSeconds/60),s=timerSeconds%60;$('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+async function login(){
+  const pw=$('loginPassword').value;
+  if(pw!==ACCESS_PASSWORD){$('loginError').textContent='암호가 올바르지 않습니다.';return}
+  if(!firebaseReady){$('loginError').textContent='Firebase 설정을 먼저 입력해주세요.';return}
+  $('loginError').textContent='';
+  try{
+    await signInWithEmailAndPassword(auth,FIREBASE_LOGIN_EMAIL,pw);
+  }catch(e){
+    console.error(e);
+    $('loginError').textContent='Firebase 로그인에 실패했습니다. 계정/설정을 확인해주세요.';
+  }
+}
+async function logout(){if(firebaseReady) await signOut(auth)}
+async function initFirebase(){
+  try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
+    const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js");
+    const { getFirestore, doc, setDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+    window.signInWithEmailAndPassword=signInWithEmailAndPassword; window.signOut=signOut; window.getDoc=getDoc; window.doc=doc; window.setDoc=setDoc;
+    if(FIREBASE_CONFIG.apiKey.startsWith('YOUR_')) return;
+    const app=initializeApp(FIREBASE_CONFIG); auth=getAuth(app); db=getFirestore(app); firebaseReady=true;
+    onAuthStateChanged(auth,async user=>{
+      if(!user){$('loginScreen').style.display='flex';$('logoutBtn').style.display='none';return}
+      $('loginScreen').style.display='none';$('logoutBtn').style.display='block';
+      try{
+        const snap=await getDoc(doc(db,'vocalNotes',user.uid));
+        if(snap.exists()){data=snap.data();localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
+      }catch(e){console.error(e);toast('서버 데이터를 불러오지 못했습니다.')}
+    });
+  }catch(e){console.error(e)}
+}
+initFirebase();
+renderAll();updateTimer();window.addEventListener('resize',drawChart);
+</script>
+</body>
+</html>
