@@ -36,18 +36,26 @@ canvas{width:100%;height:190px;background:#0d1016;border:1px solid var(--line);b
 @media(max-width:1100px){.sidebar{width:72px}.logo{font-size:0}.logo span{font-size:20px}.nav button{font-size:0;text-align:center}.nav button:before{content:"•";font-size:20px}.main{margin-left:72px;width:calc(100% - 72px)}.stats{grid-template-columns:repeat(2,1fr)}.warm-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.stats,.two,.formgrid,.yt-grid,.warm-grid{grid-template-columns:1fr}.calendar{gap:4px}.day{min-height:62px;padding:6px}.day-hours{font-size:10px}.day-count{display:none}.main{padding:14px}.top{align-items:flex-start}.top .btn{display:none}}
 
-/* 로그인 스크린용 CSS 추가 */
+/* 이메일 로그인 화면 CSS */
 .login-screen { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100; text-align:center; }
-.login-screen h1 { margin-bottom: 20px; font-size: 38px; font-weight: 900; }
+.login-screen h1 { margin-bottom: 24px; font-size: 38px; font-weight: 900; }
 .login-screen span { color: var(--accent); }
+.login-form { display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px; }
+.auth-msg { color: var(--danger); font-size: 13px; font-weight: bold; margin-top: 8px; min-height: 16px; }
 </style>
 </head>
 <body>
 
-<!-- 구글 로그인 화면 (로그인 안 되어있을 때만 보임) -->
+<!-- 이메일 로그인 화면 -->
 <div class="login-screen" id="loginScreen">
   <h1>VOCAL <span>NOTE</span></h1>
-  <button class="btn primary" onclick="loginWithGoogle()" style="padding: 14px 28px; font-size: 16px;">Google 계정으로 시작하기</button>
+  <div class="login-form">
+    <input type="email" id="emailInput" placeholder="이메일 주소">
+    <input type="password" id="pwInput" placeholder="비밀번호 (6자리 이상)">
+    <div class="auth-msg" id="authMsg"></div>
+    <button class="btn primary" onclick="loginWithEmail()">로그인</button>
+    <button class="btn" onclick="signUpWithEmail()">회원가입</button>
+  </div>
 </div>
 
 <div class="app">
@@ -58,7 +66,7 @@ canvas{width:100%;height:190px;background:#0d1016;border:1px solid var(--line);b
 <button data-page="songs">곡 관리</button>
 <button data-page="calendar">연습 캘린더</button>
 <button data-page="warmup">워밍업</button>
-<!-- 로그아웃 버튼 추가 -->
+<!-- 로그아웃 버튼 -->
 <button onclick="logout()" style="margin-top: 30px; color: var(--danger);">로그아웃</button>
 </nav>
 </aside>
@@ -145,7 +153,7 @@ canvas{width:100%;height:190px;background:#0d1016;border:1px solid var(--line);b
 <!-- Firebase 및 앱 스크립트 모듈 -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 // Firebase 설정
@@ -162,7 +170,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let data = { sessions: [], songs: [] };
@@ -177,27 +184,61 @@ const warmups = [
 ];
 
 const $ = id => document.getElementById(id);
-window.$ = $; // HTML 인라인 이벤트 바인딩용
+window.$ = $;
 
 // 로그인 상태 감지
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    $('loginScreen').style.display = 'none'; // 로그인 완료 시 화면 숨김
+    $('loginScreen').style.display = 'none';
+    $('emailInput').value = '';
+    $('pwInput').value = '';
+    $('authMsg').textContent = '';
     await loadData();
     renderAll();
     updateTimer();
   } else {
     currentUser = null;
-    $('loginScreen').style.display = 'flex'; // 미로그인 시 화면 표시
+    $('loginScreen').style.display = 'flex';
   }
 });
 
-// 로그인 & 로그아웃 기능 (HTML 연동)
-window.loginWithGoogle = () => signInWithPopup(auth, provider).catch(e => console.error("로그인 에러:", e));
+// 이메일 회원가입
+window.signUpWithEmail = async () => {
+  const email = $('emailInput').value.trim();
+  const pw = $('pwInput').value.trim();
+  if(!email || !pw) return $('authMsg').textContent = "이메일과 비밀번호를 입력해주세요.";
+  if(pw.length < 6) return $('authMsg').textContent = "비밀번호는 6자리 이상이어야 합니다.";
+  
+  try {
+    $('authMsg').textContent = "가입 중...";
+    await createUserWithEmailAndPassword(auth, email, pw);
+  } catch(e) { 
+    if(e.code === 'auth/email-already-in-use') $('authMsg').textContent = "이미 가입된 이메일입니다.";
+    else if(e.code === 'auth/invalid-email') $('authMsg').textContent = "유효하지 않은 이메일 형식입니다.";
+    else $('authMsg').textContent = "회원가입 실패: " + e.message;
+  }
+};
+
+// 이메일 로그인
+window.loginWithEmail = async () => {
+  const email = $('emailInput').value.trim();
+  const pw = $('pwInput').value.trim();
+  if(!email || !pw) return $('authMsg').textContent = "이메일과 비밀번호를 입력해주세요.";
+  
+  try {
+    $('authMsg').textContent = "로그인 중...";
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) { 
+    if(e.code === 'auth/invalid-credential') $('authMsg').textContent = "이메일 또는 비밀번호가 틀렸습니다.";
+    else $('authMsg').textContent = "로그인 실패: " + e.message;
+  }
+};
+
+// 로그아웃
 window.logout = () => signOut(auth);
 
-// Firestore에서 데이터 로드
+// Firestore 데이터 로드 및 저장
 async function loadData() {
   if (!currentUser) return;
   try {
@@ -212,21 +253,19 @@ async function loadData() {
   } catch(e) { console.error("데이터 로드 실패:", e); }
 }
 
-// Firestore에 데이터 저장
 async function persist() {
   if (!currentUser) return;
   try {
     await setDoc(doc(db, "users", currentUser.uid), data);
     renderAll();
-  } catch(e) { console.error("데이터 저장 실패:", e); toast("저장에 실패했습니다."); }
+  } catch(e) { toast("데이터 저장 실패"); }
 }
 
-// --- 유틸 함수 ---
+// --- 유틸 및 렌더링 함수 (기존과 동일) ---
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function dateStr(d=new Date()){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
 
-// --- 모듈 밖 HTML에서 접근해야 하는 전역(window) 함수들 매핑 ---
 window.closeModal = () => document.querySelectorAll('.modal').forEach(x=>x.classList.remove('open'));
 function setRange(id,v){$(id).value=v;$(id+'V').textContent=v}
 function fillSongSelect(selected=''){$('sSong').innerHTML='<option value="">선택 안 함</option>'+data.songs.map(s=>`<option value="${s.id}" ${String(s.id)===String(selected)?'selected':''}>${esc(s.title)}${s.artist?' — '+esc(s.artist):''}</option>`).join('')}
